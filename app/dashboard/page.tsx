@@ -85,10 +85,12 @@ export default function Dashboard() {
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="bg-border" />
-                    <DropdownMenuItem className="cursor-pointer focus:bg-accent/10 focus:text-accent">
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                    </DropdownMenuItem>
+                    <Link href="/profile">
+                        <DropdownMenuItem className="cursor-pointer focus:bg-accent/10 focus:text-accent">
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                        </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem 
                         className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
                         onClick={async () => {
