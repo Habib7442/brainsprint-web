@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -8,11 +7,12 @@ import { ArrowLeft, Play, RotateCcw, Pause } from "lucide-react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { createClient } from "@/utils/supabase/client";
+import questionsData from "@/app/data/speed_calc_questions.json";
 
 // --- Game Constants ---
 const COLUMNS = 5;
 const COL_WIDTH_PERCENT = 100 / COLUMNS;
-const SPAWN_Rate_MS = 3500; // Slower spawn rate since we spawn multiple blocks
+const SPAWN_Rate_MS = 3500; 
 const GRAVITY_PIXELS_PER_TICK = 1.0; 
 const TICK_Rate_MS = 16;
 
@@ -47,7 +47,7 @@ export default function SpeedCalculationGame() {
   
   const containerRef = useRef<HTMLDivElement>(null);
   const targetRef = useRef(0); 
-  const gameOverRef = useRef(false); // Ref to prevent double executions
+  const gameOverRef = useRef(false); 
 
   // --- Core Game Loop ---
 
@@ -59,112 +59,49 @@ export default function SpeedCalculationGame() {
     if (blocks.length === 0) {
        spawnRow();
     }
-    // No interval anymore - purely wave based
   }, [isPlaying, isGameOver, blocks.length]);
 
   const spawnRow = () => {
-    // Generate Row - ALWAYS 5 blocks
-    const newBlocks: NumberBlock[] = [];
-    const rowId = Math.random().toString(36).substr(2, 5);
-      
-    const rowValues: number[] = [];
-    
-    // Choose operation type based on score (difficulty progression)
+    // Pick a random question from the dataset
+    const randomIndex = Math.floor(Math.random() * questionsData.length);
+    const question = questionsData[randomIndex];
+
+    // Map JSON type to internal operation type
     let opType: 'add' | 'subtract' | 'multiply' | 'divide' | 'square' = 'add';
-    const rand = Math.random();
-    
-    if (score < 50) {
-      opType = 'add'; // Start with addition only
-    } else if (score < 100) {
-      opType = rand > 0.5 ? 'add' : 'subtract';
-    } else if (score < 200) {
-      const choice = rand * 3;
-      opType = choice < 1 ? 'add' : choice < 2 ? 'subtract' : 'multiply';
-    } else {
-      // All operations
-      const choice = rand * 5;
-      opType = choice < 1 ? 'add' : choice < 2 ? 'subtract' : choice < 3 ? 'multiply' : choice < 4 ? 'divide' : 'square';
+    switch(question.type) {
+      case 'addition': opType = 'add'; break;
+      case 'subtraction': opType = 'subtract'; break;
+      case 'multiplication': opType = 'multiply'; break;
+      case 'division': opType = 'divide'; break;
+      case 'square': opType = 'square'; break;
     }
     
     setOperation(opType);
+    setTarget(question.target);
+    targetRef.current = question.target;
+
+    // Generate Blocks from Question Numbers
+    const newBlocks: NumberBlock[] = [];
+    const rowId = Math.random().toString(36).substr(2, 5);
     
-    // Generate appropriate numbers based on operation
+    // Ensure we have exactly COLUMNS (5) numbers. 
+    const rowValues = question.numbers; 
+
     for (let i = 0; i < COLUMNS; i++) {
-      let val: number;
-      
-      switch(opType) {
-        case 'add':
-        case 'subtract':
-          val = Math.floor(Math.random() * 9) + 1; // 1-9
-          break;
-        case 'multiply':
-          val = Math.floor(Math.random() * 7) + 2; // 2-8 (smaller for multiplication)
-          break;
-        case 'divide':
-          val = (Math.floor(Math.random() * 6) + 2) * 2; // Even numbers 4-12
-          break;
-        case 'square':
-          val = Math.floor(Math.random() * 8) + 2; // 2-9 (for squaring)
-          break;
-        default:
-          val = Math.floor(Math.random() * 9) + 1;
-      }
-      
-      rowValues.push(val);
-      newBlocks.push({
-        id: `${rowId}-${i}`,
-        value: val,
-        col: i,
-        y: -80,
-        speed: 1, 
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      });
+        // Fallback random if data is missing (safety)
+        const val = rowValues[i] !== undefined ? rowValues[i] : Math.floor(Math.random() * 9) + 1;
+        
+        newBlocks.push({
+            id: `${rowId}-${i}`,
+            value: val,
+            col: i,
+            y: -80,
+            speed: 1, 
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        });
     }
 
-    // Generate Target based on operation
-    const shuffled = [...rowValues].sort(() => 0.5 - Math.random());
-    let newTarget: number = 0;
-    
-    switch(opType) {
-      case 'add':
-        const addCount = Math.random() > 0.5 ? 2 : 3;
-        const addSelection = shuffled.slice(0, addCount);
-        newTarget = addSelection.reduce((a, b) => a + b, 0);
-        break;
-        
-      case 'subtract':
-        // Pick 2 numbers, larger - smaller
-        const subSelection = shuffled.slice(0, 2).sort((a, b) => b - a);
-        newTarget = subSelection[0] - subSelection[1];
-        break;
-        
-      case 'multiply':
-        // Pick 2 numbers to multiply
-        const mulSelection = shuffled.slice(0, 2);
-        newTarget = mulSelection[0] * mulSelection[1];
-        break;
-        
-      case 'divide':
-        // Pick 2 numbers where first is divisible by second
-        const num1 = shuffled[0];
-        const num2 = shuffled[1];
-        newTarget = Math.floor(num1 / num2);
-        break;
-        
-      case 'square':
-        // Pick 1 number and square it
-        newTarget = shuffled[0] * shuffled[0];
-        break;
-        
-      default:
-        newTarget = shuffled[0] + shuffled[1];
-    }
-      
-    setTarget(newTarget);
-    targetRef.current = newTarget;
-
-
-    setBlocks(newBlocks); // Replace/Set blocks since we only want ONE row
+    setBlocks(newBlocks); 
   };
 
   // Gravity & Game Over Check
@@ -198,7 +135,7 @@ export default function SpeedCalculationGame() {
     }, TICK_Rate_MS);
 
     return () => clearInterval(gameLoop);
-  }, [isPlaying, isGameOver, score]); // Added score dependency for difficulty ramp
+  }, [isPlaying, isGameOver, score]); 
 
 
   // --- Interaction Handlers ---
@@ -483,7 +420,7 @@ export default function SpeedCalculationGame() {
                     width: `${COL_WIDTH_PERCENT}%`,
                     display: 'flex',
                     justifyContent: 'center',
-                    y: block.y, 
+                     // Remove 'y' here as it's invalid CSS property, managed by Framer Motion 'animate' prop
                   }}
                   className="cursor-pointer"
                   onClick={() => handleBlockClick(block)}

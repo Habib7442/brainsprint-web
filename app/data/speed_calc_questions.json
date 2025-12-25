@@ -1,0 +1,55 @@
+[
+  { "type": "addition", "target": 11, "numbers": [1, 7, 8, 3, 5] },
+  { "type": "multiplication", "target": 12, "numbers": [3, 4, 6, 2, 8] },
+  { "type": "subtraction", "target": 5, "numbers": [9, 4, 7, 2, 11] },
+  { "type": "division", "target": 4, "numbers": [16, 8, 4, 2, 12] },
+  { "type": "square", "target": 121, "numbers": [11, 9, 12, 10, 8] },
+
+  { "type": "addition", "target": 15, "numbers": [6, 9, 3, 7, 4] },
+  { "type": "multiplication", "target": 18, "numbers": [3, 6, 9, 2, 4] },
+  { "type": "subtraction", "target": 7, "numbers": [15, 8, 6, 4, 10] },
+  { "type": "division", "target": 5, "numbers": [25, 5, 10, 20, 15] },
+  { "type": "square", "target": 144, "numbers": [12, 10, 14, 16, 8] },
+
+  { "type": "addition", "target": 20, "numbers": [12, 8, 6, 10, 4] },
+  { "type": "multiplication", "target": 16, "numbers": [4, 4, 8, 2, 6] },
+  { "type": "subtraction", "target": 9, "numbers": [18, 9, 7, 6, 12] },
+  { "type": "division", "target": 6, "numbers": [36, 6, 12, 18, 9] },
+  { "type": "square", "target": 169, "numbers": [13, 11, 15, 14, 12] },
+
+  { "type": "addition", "target": 18, "numbers": [10, 8, 6, 12, 4] },
+  { "type": "multiplication", "target": 20, "numbers": [5, 4, 10, 2, 8] },
+  { "type": "subtraction", "target": 11, "numbers": [20, 9, 11, 7, 13] },
+  { "type": "division", "target": 8, "numbers": [64, 8, 16, 4, 32] },
+  { "type": "square", "target": 196, "numbers": [14, 12, 16, 18, 10] },
+
+  { "type": "addition", "target": 22, "numbers": [11, 9, 13, 7, 10] },
+  { "type": "multiplication", "target": 24, "numbers": [6, 4, 8, 12, 3] },
+  { "type": "subtraction", "target": 13, "numbers": [25, 12, 18, 7, 20] },
+  { "type": "division", "target": 10, "numbers": [40, 10, 20, 5, 25] },
+  { "type": "square", "target": 225, "numbers": [15, 13, 17, 14, 16] },
+
+  { "type": "addition", "target": 25, "numbers": [10, 15, 5, 20, 8] },
+  { "type": "multiplication", "target": 27, "numbers": [3, 9, 6, 12, 18] },
+  { "type": "subtraction", "target": 14, "numbers": [22, 8, 10, 6, 18] },
+  { "type": "division", "target": 12, "numbers": [48, 12, 24, 6, 36] },
+  { "type": "square", "target": 256, "numbers": [16, 14, 18, 20, 12] },
+
+  { "type": "addition", "target": 30, "numbers": [15, 10, 20, 5, 12] },
+  { "type": "multiplication", "target": 32, "numbers": [8, 4, 16, 2, 6] },
+  { "type": "subtraction", "target": 16, "numbers": [30, 14, 18, 10, 22] },
+  { "type": "division", "target": 15, "numbers": [60, 15, 30, 5, 45] },
+  { "type": "square", "target": 289, "numbers": [17, 15, 19, 16, 18] },
+
+  { "type": "addition", "target": 28, "numbers": [14, 7, 21, 10, 8] },
+  { "type": "multiplication", "target": 36, "numbers": [6, 6, 12, 9, 18] },
+  { "type": "subtraction", "target": 17, "numbers": [25, 8, 12, 20, 18] },
+  { "type": "division", "target": 18, "numbers": [72, 18, 36, 6, 54] },
+  { "type": "square", "target": 324, "numbers": [18, 16, 20, 14, 22] },
+
+  { "type": "addition", "target": 35, "numbers": [20, 15, 10, 25, 5] },
+  { "type": "multiplication", "target": 40, "numbers": [5, 8, 10, 4, 20] },
+  { "type": "subtraction", "target": 19, "numbers": [30, 11, 21, 15, 25] },
+  { "type": "division", "target": 20, "numbers": [80, 20, 40, 10, 60] },
+  { "type": "square", "target": 361, "numbers": [19, 17, 21, 18, 20] }
+]
