@@ -37,8 +37,8 @@ export default function LandingPage() {
       
       {/* Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/10 blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-500/10 blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-500/10 blur-[120px]" />
           <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-purple-500/5 blur-[120px]" />
           <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50 contrast-150 pointer-events-none" />
       </div>
@@ -128,9 +128,7 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className="max-w-2xl text-lg md:text-xl text-gray-400 mb-12 leading-relaxed font-medium"
             >
-                Turn competitive exam prep into a performance-driven game. 
-                Experience AI-generated questions, real-time speed analysis, 
-                and high-stakes PvP study rooms.
+                Master competitive exams with AI-powered questions, live speed tracking, and real-time study rooms.
             </motion.p>
 
             <motion.div
@@ -149,13 +147,7 @@ export default function LandingPage() {
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </Button>
-                <Button 
-                    size="lg" 
-                    variant="outline"
-                    className="h-16 px-10 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-lg backdrop-blur-xl transition-transform hover:scale-105 active:scale-95"
-                >
-                    View Modules
-                </Button>
+
             </motion.div>
          </motion.div>
          
@@ -213,23 +205,6 @@ export default function LandingPage() {
          </motion.div>
       </section>
 
-      {/* Stats Section */}
-      <section className="relative z-10 py-12 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-                { label: 'AI Questions', value: '1,000,000+' },
-                { label: 'Avg Speed Boost', value: '38%' },
-                { label: 'Practice Modules', value: '50+' },
-                { label: 'Global Ranking', value: '#1' }
-            ].map((stat, i) => (
-                <div key={i} className="text-center">
-                    <div className="text-2xl md:text-3xl font-black text-white mb-1">{stat.value}</div>
-                    <div className="text-xs uppercase tracking-widest font-bold text-gray-500">{stat.label}</div>
-                </div>
-            ))}
-        </div>
-      </section>
-
       {/* Modules Section */}
       <section id="modules" className="relative z-10 py-32 px-6 max-w-7xl mx-auto">
         <div className="text-center mb-20">
@@ -263,7 +238,7 @@ export default function LandingPage() {
       </section>
 
       {/* AI Radar Section */}
-      <section className="relative z-10 py-32 px-6 overflow-hidden">
+      <section id="features" className="relative z-10 py-32 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
                 initial={{ opacity: 0, x: -50 }}
@@ -322,10 +297,8 @@ export default function LandingPage() {
                         <div className="absolute w-px h-full bg-teal-500/10" />
                         <div className="absolute w-full h-px bg-teal-500/10" />
                         
-                        <motion.div 
-                            className="absolute inset-0 bg-teal-500/10"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                        <div 
+                            className="absolute inset-0 bg-teal-500/5"
                             style={{ clipPath: 'polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%)', maskImage: 'linear-gradient(to right, transparent, black)' }}
                         />
 
@@ -374,7 +347,7 @@ export default function LandingPage() {
                                 <CheckCircle2 className="w-5 h-5 text-teal-500" /> AI-Generated Combat Sets
                             </li>
                         </ul>
-                        <Button className="w-full h-14 rounded-2xl bg-teal-500 hover:bg-teal-400 text-black font-black">Create Your Room</Button>
+
                     </div>
                 </div>
 
@@ -391,9 +364,70 @@ export default function LandingPage() {
                                 <CheckCircle2 className="w-5 h-5 text-teal-500" /> Avatar & Title Customization
                             </li>
                         </ul>
-                        <Button variant="outline" className="w-full h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-black">View Leaderboard</Button>
+
                     </div>
                 </div>
+            </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="relative z-10 py-32 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6">Choose Your <span className="text-teal-400 italic">Velocity</span></h2>
+            <p className="text-gray-500 font-medium">Simple, transparent pricing for all types of sprinters.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Free Plan */}
+            <div className="group p-10 rounded-[40px] bg-zinc-900/50 border border-white/5 hover:border-white/10 transition-all shadow-2xl relative overflow-hidden flex flex-col">
+                <div className="mb-8 p-1">
+                    <h3 className="text-2xl font-bold mb-2">Free Sprint</h3>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-5xl font-black">₹0</span>
+                        <span className="text-gray-500 font-bold uppercase tracking-widest text-xs">/ Forever</span>
+                    </div>
+                </div>
+                <ul className="space-y-4 mb-12 flex-grow">
+                    {['Access basic Reasoning', 'Limited Formula Sprint', 'Basic performance stats', 'Join public rooms'].map((f, i) => (
+                        <li key={i} className="flex items-center gap-3 text-sm font-bold text-gray-400">
+                            <CheckCircle2 className="w-4 h-4 text-teal-500" /> {f}
+                        </li>
+                    ))}
+                </ul>
+                <Button variant="outline" className="w-full h-14 rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 font-black" asChild>
+                    <Link href="/auth">Get Started</Link>
+                </Button>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="group p-10 rounded-[40px] bg-white text-black border border-white/10 transition-all shadow-[0_0_50px_rgba(45,212,191,0.2)] relative overflow-hidden flex flex-col scale-105 z-10">
+                <div className="absolute top-6 right-8 bg-teal-500 text-black text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Recommended</div>
+                <div className="mb-8">
+                    <h3 className="text-2xl font-bold mb-2 text-black/60">Pro Sprint</h3>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-black/30 line-through">₹499</span>
+                        <span className="text-5xl font-black">₹0</span>
+                        <span className="text-black/40 font-bold uppercase tracking-widest text-xs">/ Free For Now</span>
+                    </div>
+                </div>
+                <ul className="space-y-4 mb-12 flex-grow">
+                    {[
+                        'Unlimited AI Topic Generation',
+                        'Deep Performance Radar Scan',
+                        'Create Private PvP Rooms',
+                        'Advanced Formula Analysis',
+                        'Priority AI extraction',
+                        'Ad-free Experience'
+                    ].map((f, i) => (
+                        <li key={i} className="flex items-center gap-3 text-sm font-black text-black/80">
+                            <CheckCircle2 className="w-4 h-4 text-teal-600" /> {f}
+                        </li>
+                    ))}
+                </ul>
+                <Button className="w-full h-14 rounded-2xl bg-black text-white hover:bg-black/90 font-black shadow-xl" disabled>
+                    Coming Soon
+                </Button>
             </div>
         </div>
       </section>
@@ -428,7 +462,7 @@ export default function LandingPage() {
                     <span className="text-xl font-bold tracking-tight text-white/50">BrainSprint</span>
                 </div>
                 <p className="text-gray-500 max-w-sm text-sm font-medium">
-                    The ultra-fast cognitive engine for competitive exam preparation. A product of the AxomPrep Engineering.
+                    The ultra-fast cognitive engine for competitive exam preparation. A product of the AxomPrep.
                 </p>
             </div>
             <div className="flex gap-12">

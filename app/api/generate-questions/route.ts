@@ -54,8 +54,9 @@ export async function POST(req: NextRequest) {
           
           ## Guidelines:
           1. **Strictly Document Based**: Questions must be answerable ONLY from the provided PDF content.
-          2. **Reasoning & Comprehension**: Focus on logic, inference, and data interpretation from the document.
-          3. **Format**: Same JSON schema as below.
+          2. **Natural Phrasing**: DO NOT start questions with "According to the document," "As per the PDF," or similar phrases. Make the question feel like a direct exam question.
+          3. **Reasoning & Comprehension**: Focus on logic, inference, and data interpretation from the document.
+          4. **Format**: Same JSON schema as below.
           
           The output must closely follow this schema:
           [

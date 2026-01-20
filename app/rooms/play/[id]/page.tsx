@@ -50,7 +50,7 @@ export default function RoomPlayPage({ params }: PageProps) {
     const [timeLeft, setTimeLeft] = useState(600); // 10 mins
     const [isGameOver, setIsGameOver] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [answers, setAnswers] = useState<Record<number, string>>({});
 
     // Fetch Quiz
     useEffect(() => {
@@ -96,26 +96,23 @@ export default function RoomPlayPage({ params }: PageProps) {
 
     const handleOptionSelect = (option: string) => {
         if (reviewMode) return;
-        setSelectedOption(option);
+        setAnswers(prev => ({ ...prev, [currentIndex]: option }));
     };
 
     const handleNext = () => {
-        if (!selectedOption) return;
-
-        const currentQ = questions[currentIndex];
-        // Score update happens at the end or incrementally? Mobile sets score locally then pushes final.
-        // Mobile: increments local state 'score' immediately if correct.
-        if (selectedOption === currentQ.correctAnswer) {
-            setScore(prev => prev + 1);
-        }
+        const currentAnswer = answers[currentIndex];
+        if (!currentAnswer) return;
 
         if (currentIndex < questions.length - 1) {
             setCurrentIndex(prev => prev + 1);
-            setSelectedOption(null);
         } else {
-            // FINISH
-            // Check last question before finishing
-            const finalScore = score + (selectedOption === currentQ.correctAnswer ? 1 : 0);
+            // Calculate final score
+            let finalScore = 0;
+            questions.forEach((q, idx) => {
+                if (answers[idx] === q.correctAnswer) {
+                    finalScore++;
+                }
+            });
             handleFinish(finalScore); 
         }
     };
@@ -268,43 +265,52 @@ export default function RoomPlayPage({ params }: PageProps) {
                          {currentQ.question}
                      </h2>
 
-                     <div className="space-y-4">
-                         {currentQ.options.map((option, idx) => {
-                             const isSelected = selectedOption === option;
-                             return (
-                                 <button
-                                    key={idx}
-                                    onClick={() => handleOptionSelect(option)}
-                                    className={`w-full p-5 rounded-2xl border-2 text-left transition-all flex items-center gap-4 group ${
-                                        isSelected 
-                                        ? 'border-[#FF6B58] bg-[#FF6B58]/10' 
-                                        : 'border-gray-700 bg-gray-800 hover:bg-gray-750'
-                                    }`}
-                                 >
-                                     <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                                         isSelected ? 'border-[#FF6B58]' : 'border-gray-500 group-hover:border-gray-400'
-                                     }`}>
-                                         {isSelected && <div className="w-3 h-3 rounded-full bg-[#FF6B58]" />}
-                                     </div>
-                                     <span className={`text-lg font-medium ${isSelected ? 'text-[#FF6B58]' : 'text-gray-300'}`}>
-                                         {option}
-                                     </span>
-                                 </button>
-                             );
-                         })}
-                     </div>
+                    <div className="space-y-4">
+                        {currentQ.options.map((option, idx) => {
+                            const isSelected = answers[currentIndex] === option;
+                            return (
+                                <button
+                                   key={idx}
+                                   onClick={() => handleOptionSelect(option)}
+                                   className={`w-full p-5 rounded-2xl border-2 text-left transition-all flex items-center gap-4 group ${
+                                       isSelected 
+                                       ? 'border-[#FF6B58] bg-[#FF6B58]/10' 
+                                       : 'border-gray-700 bg-gray-800 hover:bg-gray-750'
+                                   }`}
+                                >
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                        isSelected ? 'border-[#FF6B58]' : 'border-gray-500 group-hover:border-gray-400'
+                                    }`}>
+                                        {isSelected && <div className="w-3 h-3 rounded-full bg-[#FF6B58]" />}
+                                    </div>
+                                    <span className={`text-lg font-medium ${isSelected ? 'text-[#FF6B58]' : 'text-gray-300'}`}>
+                                        {option}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
                  </div>
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-800 bg-gray-900">
-                <div className="max-w-2xl mx-auto">
+            <div className="p-6 border-t border-gray-800 bg-gray-900 sticky bottom-0">
+                <div className="max-w-2xl mx-auto flex gap-4">
+                    {currentIndex > 0 && (
+                        <button
+                            onClick={() => setCurrentIndex(prev => prev - 1)}
+                            className="flex-1 py-4 bg-gray-800 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-2 border border-gray-700 hover:bg-gray-750 transition-all"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                            Prev
+                        </button>
+                    )}
                     <button
                         onClick={handleNext}
-                        disabled={!selectedOption}
-                        className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
-                            !selectedOption 
-                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
+                        disabled={!answers[currentIndex]}
+                        className={`flex-[2] py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
+                            !answers[currentIndex] 
+                            ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700' 
                             : 'bg-[#FF6B58] text-white hover:bg-[#E55A49] shadow-lg shadow-[#FF6B58]/20'
                         }`}
                     >
