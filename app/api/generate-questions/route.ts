@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
           "question": "Question text here (include any necessary instructions/diagram description)",
           "options": ["Option A", "Option B", "Option C", "Option D"],
           "correctAnswer": "The correct option string exactly matching one of the options",
-          "explanation": "Detailed, step-by-step explanation of the logic. Why is the answer correct? Why are others wrong?",
+          "explanation": "Step-by-step solution in numbered points. Each step should be on a new line. Format: 1. First step\\n2. Second step\\n3. Final answer",
           "difficulty": "Easy" | "Medium" | "Hard",
           "topic": "${topic}"
         }
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
               "question": "Question text here",
               "options": ["Option A", "Option B", "Option C", "Option D"],
               "correctAnswer": "The correct option string",
-              "explanation": "Reference the section/page of the PDF if possible. Explain the logic.",
+              "explanation": "Step-by-step solution in numbered points. Each step should be on a new line. Reference the relevant section/page of the PDF. Format: 1. First step\\n2. Second step\\n3. Final answer",
               "difficulty": "Easy" | "Medium" | "Hard",
               "topic": "${topic}"
             }

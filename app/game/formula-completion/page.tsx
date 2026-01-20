@@ -33,6 +33,7 @@ export default function FormulaCompletionGame() {
     const [timeLeft, setTimeLeft] = useState(15);
     const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
     const [xpEarned, setXpEarned] = useState(0);
+    const [durationSeconds, setDurationSeconds] = useState(0);
     const [gameStartTime, setGameStartTime] = useState<Date | null>(null);
     const [loadingQuestions, setLoadingQuestions] = useState(false);
 
@@ -46,7 +47,7 @@ export default function FormulaCompletionGame() {
             const response = await fetch('/api/generate-formulas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chapter, count: 10 })
+                body: JSON.stringify({ chapter, count: 25 })
             });
             const data = await response.json();
             
@@ -67,7 +68,7 @@ export default function FormulaCompletionGame() {
             }
             if (pool.length === 0) pool = FORMULA_DATA;
             const shuffled = pool.sort(() => 0.5 - Math.random());
-            setQuestions(shuffled.slice(0, 10));
+            setQuestions(shuffled.slice(0, 25));
             setGameState('playing');
             setCurrentIndex(0);
             setScore(0);
@@ -83,6 +84,9 @@ export default function FormulaCompletionGame() {
         setGameState('result');
         const xp = finalScore * 10;
         setXpEarned(xp);
+        
+        const durationSec = gameStartTime ? Math.floor((new Date().getTime() - gameStartTime.getTime()) / 1000) : 0;
+        setDurationSeconds(durationSec);
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
@@ -170,11 +174,11 @@ export default function FormulaCompletionGame() {
                         </div>
                         <div className="flex gap-4">
                             <Brain className="w-5 h-5 text-purple-400 shrink-0" />
-                            <p className="text-sm text-gray-300">10 High-stakes questions</p>
+                            <p className="text-sm text-gray-300">25 High-stakes questions</p>
                         </div>
                         <div className="flex gap-4">
                             <Rocket className="w-5 h-5 text-orange-400 shrink-0" />
-                            <p className="text-sm text-gray-300">Earn up to 100 XP per session</p>
+                            <p className="text-sm text-gray-300">Earn up to 250 XP per session</p>
                         </div>
                     </div>
 
@@ -235,7 +239,7 @@ export default function FormulaCompletionGame() {
                             </div>
                             <div>
                                 <h2 className="font-bold text-gray-400 uppercase text-xs tracking-widest">{currentQ.chapter}</h2>
-                                <p className="font-black text-white">Question {currentIndex + 1} of 10</p>
+                                <p className="font-black text-white">Question {currentIndex + 1} of 25</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
@@ -264,22 +268,14 @@ export default function FormulaCompletionGame() {
                             <div className="text-2xl font-bold text-gray-400 tracking-tight">
                                 <MathRenderer text={currentQ.formulaHead.startsWith('$') ? currentQ.formulaHead : `$${currentQ.formulaHead}$`} />
                             </div>
-                            <div className="text-5xl md:text-7xl font-black tracking-tight flex flex-wrap justify-center items-center gap-x-3">
-                                {currentQ.template.split('[?]').map((part, i, arr) => (
-                                    <React.Fragment key={i}>
-                                        <div className="flex items-center">
-                                            <MathRenderer 
-                                                text={part.startsWith('$') ? part : `$${part}$`} 
-                                                className="leading-none" 
-                                            />
-                                        </div>
-                                        {i < arr.length - 1 && (
-                                            <div className="flex flex-col items-center">
-                                                <span className="text-teal-400 min-w-[100px] h-20 flex items-center justify-center border-b-4 border-teal-500/50 bg-teal-500/5 rounded-t-2xl animate-pulse">?</span>
-                                            </div>
-                                        )}
-                                    </React.Fragment>
-                                ))}
+                            <div className="text-5xl md:text-7xl font-black tracking-tight">
+                                <MathRenderer 
+                                    text={(() => {
+                                        const t = currentQ.template.replace('[?]', '\\color{#2DD4BF}{\\boxed{\\text{ ? }}}');
+                                        return t.startsWith('$') ? t : `$${t}$`;
+                                    })()} 
+                                    className="leading-none" 
+                                />
                             </div>
                         </div>
 
@@ -318,14 +314,20 @@ export default function FormulaCompletionGame() {
                     <h2 className="text-4xl font-black mb-2">Sprint Result</h2>
                     <p className="text-gray-500 font-bold uppercase tracking-widest text-sm mb-10">Maths Formula Vault</p>
 
-                    <div className="grid grid-cols-2 gap-4 mb-10">
-                        <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                            <div className="text-3xl font-black text-teal-400">{score}/10</div>
+                    <div className="grid grid-cols-3 gap-3 mb-10">
+                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                            <div className="text-2xl font-black text-teal-400">{score}/25</div>
                             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Accuracy</div>
                         </div>
-                        <div className="p-6 bg-white/5 rounded-3xl border border-white/5">
-                            <div className="text-3xl font-black text-orange-400">+{xpEarned}</div>
+                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                            <div className="text-2xl font-black text-orange-400">+{xpEarned}</div>
                             <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">XP Earned</div>
+                        </div>
+                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                            <div className="text-2xl font-black text-blue-400">
+                                {Math.floor(durationSeconds / 60)}:{(durationSeconds % 60).toString().padStart(2, '0')}
+                            </div>
+                            <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Time</div>
                         </div>
                     </div>
 

@@ -13,29 +13,23 @@ export async function POST(req: NextRequest) {
   try {
     const { chapter, count } = await req.json();
 
+    const seed = Date.now().toString(36);
     const promptText = `
-      Generate ${count || 10} formula completion questions for the chapter '${chapter || 'All Chapters'}' in Mathematics (Quant/Competitive Exams).
+      Generate ${count || 25} formula completion questions for the chapter '${chapter || 'All Chapters'}' in Mathematics (Quant/Competitive Exams).
+      Random Seed: ${seed}
+      
+      ## Guidelines:
+      1. **Variety**: Focus on different formulas within the chapter. Do not repeat the same question structure.
+      2. **Strict Math Formatting**: ALWAYS wrap ALL mathematical expressions (formulaHead, template, correctPart, and options) in '$' delimiters. 
+         - Example: "$A = $" and "$\\pi \\times [?]$"
+      3. **LaTeX Integrity**: Ensure the 'template' remains valid LaTeX even with the '[?]' placeholder. 
+         - AVOID putting '[?]' inside complex LaTeX commands if it breaks them. 
+         - For fractions, use: $\\text{sin}(\\theta) / [?]$ OR $\\frac{\\text{sin}(\\theta)}{X} \\text{ where } X = [?]$ if needed, but preferable to keep it simple.
+      4. **formulaHead**: The start/name of the formula.
+      5. **template**: The formula with ONE '[?]' placeholder.
+      6. **correctPart**: The exact value for '[?]'.
+      
       Chapters can include: Mensuration, Trigonometry, Algebra, Geometry, Arithmetic.
-      
-      ## Format Rules:
-      1. **formulaHead**: The start of the formula (e.g., "$Area of Circle =$")
-      2. **template**: The formula with a [?] placeholder (e.g., "$\\pi \\times [?]$")
-      3. **correctPart**: The exact string that replaces [?] (e.g., "$r^2$")
-      4. **options**: 4 distinct options including the correctPart.
-      5. **Math Formatting**: ALWAYS use LaTeX format with '$' delimiters. Use standard LaTeX symbols like \\pi, \\times, \\theta, etc. NEVER use raw unicode characters.
-      6. **Difficulty**: Assign Easy, Medium, or Hard.
-      
-      Example:
-      {
-        "id": "f_001",
-        "topic": "Quant Maths",
-        "chapter": "Mensuration",
-        "formulaHead": "Volume of Sphere =",
-        "template": "$\\frac{4}{3} \\pi \\times [?]$",
-        "correctPart": "$r^3$",
-        "options": ["$r^2$", "$r^3$", "$3r$", "$\\pi r^2$"],
-        "difficulty": "Medium"
-      }
     `;
 
     const response = await ai.models.generateContent({
