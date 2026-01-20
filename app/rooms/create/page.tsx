@@ -158,7 +158,7 @@ export default function CreateRoomPage() {
             // 2. Generate/Save Questions
             let questions: any[] = [];
             
-            if (generationType === 'api') { // This logic was 'ai' in mobile
+            if (generationType === 'ai') {
                 const response = await fetch('/api/generate-questions', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
