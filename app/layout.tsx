@@ -1,13 +1,27 @@
 import type { Metadata } from "next";
 import { rubik, spaceMono } from "./fonts";
 import "./globals.css";
-
-import { SWRegister } from "@/components/SWRegister";
 import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "BrainSprint | AxomPrep",
   description: "Think Faster. Solve Smarter. Win Exams.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BrainSprint",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport = {
+  themeColor: "#0A0A0B",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
@@ -21,7 +35,7 @@ export default function RootLayout({
         className={`${rubik.variable} ${spaceMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <SWRegister />
+
         <AuthProvider>
           {children}
         </AuthProvider>
