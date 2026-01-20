@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (data?.user) {
-      console.log('✅ User authenticated:', data.user.email)
-      console.log('📋 User metadata:', data.user.user_metadata)
+      console.log('✅ User authenticated successfully')
+
 
       // Check if user exists in public table
       const { data: existingUser, error: selectError } = await supabase
@@ -52,12 +52,11 @@ export async function GET(request: NextRequest) {
         const { error: insertError } = await supabase.from('users').insert({
           id: data.user.id,
           email: data.user.email,
-          full_name: data.user.user_metadata.full_name || data.user.user_metadata.name,
+          name: data.user.user_metadata.full_name || data.user.user_metadata.name || data.user.email?.split('@')[0],
           avatar_url: data.user.user_metadata.avatar_url || data.user.user_metadata.picture,
-          subscription_tier: 'free',
-          xp: 0,
-          level: 1,
-          streak: 0
+          total_xp: 0,
+          current_level: 1,
+          current_streak: 0
         })
 
         if (insertError) {

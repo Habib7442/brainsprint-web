@@ -44,7 +44,7 @@ export default function LeaderboardPage() {
                 // Fetch Global leaderboard based on Total XP
                 const { data, error } = await supabase
                     .from('users')
-                    .select('id, name, avatar_url, total_xp, current_level')
+                    .select('id, name, email, avatar_url, total_xp, current_level')
                     .order('total_xp', { ascending: false })
                     .limit(50);
 
@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
 
                 const mapped = data.map(u => ({
                     id: u.id,
-                    name: u.name || 'Anonymous',
+                    name: u.name || u.email?.split('@')[0] || 'Anonymous',
                     avatar_url: u.avatar_url,
                     score: u.total_xp || 0,
                     level: u.current_level
@@ -70,7 +70,7 @@ export default function LeaderboardPage() {
                         user_id, 
                         correct_answers, 
                         xp_earned,
-                        users (name, avatar_url, current_level)
+                        users (name, email, avatar_url, current_level)
                     `)
                     .eq('category', activeTab) // match tab id to category
                     .order('correct_answers', { ascending: false })
@@ -85,13 +85,9 @@ export default function LeaderboardPage() {
                     if (!uniqueUsers.has(session.user_id) && session.users) {
                         uniqueUsers.set(session.user_id, {
                             id: session.user_id,
-                            name: session.users.name || 'Anonymous',
+                            name: session.users.name || session.users.email?.split('@')[0] || 'Anonymous',
                             avatar_url: session.users.avatar_url,
-                            score: session.correct_answers, // Showing Correct Answers count as "Score" for subject specific? Or XP? Let's use Correct Answers as it's more tangible for a single test "result". Or maybe XP. Let's use XP for consistency with leaderboard unit.
-                            // Actually, user said "show best result". Usually that means score (e.g. 15/15).
-                            // But leaderboard looks better with big numbers (XP).
-                            // Let's stick to XP earned in that session as the stored metric.
-                            // Wait, if I use XP, it's specific to that session. 
+                            score: session.correct_answers,
                             level: session.users.current_level
                         });
                     }

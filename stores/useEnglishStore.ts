@@ -151,17 +151,16 @@ export const useEnglishStore = create<EnglishState>((set, get) => ({
 
         if (sessionError) throw sessionError;
 
-        // 2. Update Total XP and Exams Played
+        // 2. Update Total XP
          const { error: updateError } = await supabase.rpc('increment_player_stats', { 
-            xp_to_add: xpEarned,
-            games_to_add: 1 
+            xp_to_add: xpEarned
         });
 
         if (updateError) {
-             const { data: profile } = await supabase.from('users').select('xp, games_played').eq('id', user.id).single();
+             const { data: profile } = await supabase.from('users').select('total_xp, games_played').eq('id', user.id).single();
              if (profile) {
                  await supabase.from('users').update({
-                     xp: (profile.xp || 0) + xpEarned,
+                     total_xp: (profile.total_xp || 0) + xpEarned,
                      games_played: (profile.games_played || 0) + 1,
                      last_active_at: new Date().toISOString()
                  }).eq('id', user.id);

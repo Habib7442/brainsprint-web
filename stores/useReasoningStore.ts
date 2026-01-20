@@ -131,10 +131,7 @@ export const useReasoningStore = create<ReasoningState>((set, get) => ({
 
     if (user) {
       try {
-        console.log('Attempting to save session...', { 
-            userId: user.id, 
-            topic: topic
-        });
+        // Saving session to DB...
 
         const { data, error } = await supabase.from('user_sessions').insert({
           user_id: user.id,

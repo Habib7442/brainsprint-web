@@ -36,6 +36,16 @@ const GAME_MODES = [
         href: '/game/maths'
     },
     {
+        id: 'formula',
+        title: 'Formula Sprint',
+        description: 'Complete formulas under pressure',
+        icon: Zap,
+        color: 'text-orange-500',
+        bgColor: 'bg-orange-500/10',
+        borderColor: 'border-orange-100 dark:border-orange-500/20',
+        href: '/game/formula-completion'
+    },
+    {
         id: 'reasoning',
         title: 'Reasoning',
         description: 'Boost logic & problem solving',

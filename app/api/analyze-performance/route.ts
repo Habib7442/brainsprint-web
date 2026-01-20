@@ -6,7 +6,7 @@ const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY || '' });
 export async function POST(req: Request) {
   try {
     const { stats } = await req.json();
-    console.log("Received Stats for Analysis:", JSON.stringify(stats, null, 2));
+
 
     const prompt = `
       You are an elite competitive exam coach (Brainsprint AI). 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
                  data?.data?.candidates?.[0]?.content?.parts?.[0]?.text || 
                  "{}";
     
-    console.log("Gemini Raw Response:", text);
+
     
     // Clean potential markdown just in case
     const cleanedText = text.replace(/```json/g, '').replace(/```/g, '').trim();

@@ -17,7 +17,9 @@ import {
     AlertCircle,
     X, 
     ExternalLink, 
-    History 
+    History,
+    Youtube,
+    Play
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -75,13 +77,30 @@ export default function AnalysisPage() {
 
     // derived analysis from stats (Client-side fallback/immediate)
     // MUST be before early returns to satisfy Rules of Hooks
+    // derived analysis from stats (SMART Analytic Engine)
     const derivedAnalysis = useMemo(() => {
         const values = Object.values(stats);
-        return {
-            weak: values.filter(s => s.accuracy < 60).map(s => s.name),
-            slow: values.filter(s => s.avg_time_per_q > 90).map(s => s.name), // > 1.5 mins
-            careless: values.filter(s => s.accuracy >= 60 && s.accuracy < 85).map(s => s.name)
-        };
+        if (values.length === 0) return { weak: [], slow: [], careless: [] };
+
+        // 1. Weak Points: Accuracy < 60% OR Lowest 25% of stats
+        const weak = values
+            .filter(s => s.accuracy < 60)
+            .map(s => s.name);
+
+        // 2. Speed Drift: Slower than your OWN overall average by 20%
+        const avgGlobalSpeed = values.reduce((acc, curr) => acc + curr.avg_time_per_q, 0) / values.length;
+        const slow = values
+            .filter(s => s.avg_time_per_q > (avgGlobalSpeed * 1.2) || s.avg_time_per_q > 90)
+            .map(s => s.name);
+
+        // 3. Careless Errors: High accuracy (80%+) but inconsistent
+        // In this context, we flag topics where you are clearly competent (80%+) 
+        // but not perfect (100%), suggesting small slips rather than conceptual gaps.
+        const careless = values
+            .filter(s => s.accuracy >= 75 && s.accuracy < 95)
+            .map(s => s.name);
+
+        return { weak, slow, careless };
     }, [stats]);
 
     const filteredSessions = useMemo(() => {
@@ -137,7 +156,7 @@ export default function AnalysisPage() {
                 return;
             }
 
-            console.log("Fetching sessions for user:", user.id);
+
 
             // Fetch all sessions (ordered by latest)
             const { data: sessionsData, error: dbError } = await supabase
@@ -154,7 +173,7 @@ export default function AnalysisPage() {
                 return;
             }
 
-            console.log("Sessions retrieved from DB:", sessionsData);
+
 
             // Ensure sessions is always an array
             const safeSessions = sessionsData || [];
@@ -323,63 +342,46 @@ export default function AnalysisPage() {
                     </motion.div>
                  </div>
 
-                 {/* AI Daily Plan */}
-                 <div className="border-t border-gray-200 dark:border-zinc-800 pt-10 mb-16">
-                     {/* ... existing AI Plan content ... */}
-                     <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                            <Zap className="w-6 h-6 text-yellow-500 fill-current" />
-                            Daily Personal Plan
-                        </h2>
-                        {generatingPlan && (
-                            <span className="text-sm text-gray-400 flex items-center gap-2">
-                                <Loader2 className="w-4 h-4 animate-spin" /> Refreshing Plan...
-                            </span>
-                        )}
-                    </div>
-                      {/* ... existing grid ... */}
-                       {!aiPlan ? (
-                           <div className="p-10 text-center bg-gray-100 dark:bg-zinc-900 rounded-3xl">
-                               <p className="text-gray-500">Generating your personalized roadmap...</p>
-                           </div>
-                      ) : (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              {aiPlan?.plan?.length > 0 ? aiPlan.plan.map((day, idx) => (
-                                  <div key={idx} className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-gray-100 dark:border-zinc-800 shadow-xl shadow-gray-200/50 dark:shadow-none relative overflow-hidden group hover:border-blue-500/30 transition-all">
-                                      <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-gray-500 select-none">
-                                          {idx + 1}
-                                      </div>
-                                      <div className="mb-4">
-                                          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{day.day}</h3>
-                                          <p className="text-xs uppercase tracking-wider font-bold text-blue-600 dark:text-blue-400">{day.focus}</p>
-                                      </div>
-                                      <ul className="space-y-4">
-                                          {day.tasks.map((task, taskIdx) => (
-                                              <li key={taskIdx} className="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
-                                                   <CheckCircle2 className="w-5 h-5 text-gray-300 dark:text-zinc-700 shrink-0 group-hover:text-green-500 transition-colors" />
-                                                   <span className="leading-snug">{task}</span>
-                                              </li>
-                                          ))}
-                                      </ul>
-                                  </div>
-                              )) : (
-                                 <div className="col-span-3 text-center p-8 text-gray-500 italic">
-                                     Unable to generate a plan from the provided stats.
-                                 </div>
-                              )}
-                          </div>
-                      )}
-                      
-                      {aiPlan?.coach_note && (
-                         <div className="mt-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg flex items-start gap-4">
-                            <Activity className="w-6 h-6 mt-1 shrink-0" />
+                 {/* NEW: Recommended Learning */}
+                 {derivedAnalysis.weak.length > 0 && (
+                    <div className="mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                                <Youtube className="w-6 h-6 text-red-600" />
+                            </div>
                             <div>
-                                <h4 className="font-bold text-lg mb-1">Coach's Diagnosis</h4>
-                                <p className="opacity-90 leading-relaxed font-medium">{aiPlan.coach_note}</p>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recommended Lectures</h2>
+                                <p className="text-sm text-gray-500">Top-rated videos to help you master your weak topics</p>
                             </div>
                         </div>
-                    )}
-                 </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {derivedAnalysis.weak.map((topic: string) => (
+                                <div key={topic} className="group bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-3xl p-6 hover:shadow-xl hover:shadow-red-500/5 transition-all">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <span className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold rounded-full uppercase tracking-wider">
+                                            Priority Study
+                                        </span>
+                                        <Play className="w-5 h-5 text-gray-300 group-hover:text-red-500 transition-colors" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+                                        {topic} Mastery
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mb-6">Learn {topic} concepts covers for SSC, RRB, and UPSC exams.</p>
+                                    
+                                    <a 
+                                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(topic + " for competitive exams best teachers")}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 dark:bg-zinc-800 hover:bg-red-600 hover:text-white dark:hover:bg-red-600 transition-all rounded-xl font-bold text-sm"
+                                    >
+                                        Watch Best Lectures <ExternalLink className="w-4 h-4" />
+                                    </a>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                 )}
 
                  {/* NEW SECTON: Test History */}
                  <div className="border-t border-gray-200 dark:border-zinc-800 pt-10">
@@ -434,6 +436,12 @@ export default function AnalysisPage() {
                                                 <span suppressHydrationWarning>{formatDistanceToNow(new Date(session.completed_at), { addSuffix: true })}</span>
                                                 <span>•</span>
                                                 <span>{session.correct_answers}/{session.total_questions} Correct</span>
+                                                {session.duration_minutes > 0 && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span>{Math.floor(session.duration_minutes)}m {Math.round((session.duration_minutes % 1) * 60)}s</span>
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

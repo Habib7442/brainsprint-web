@@ -41,7 +41,7 @@ export const MathRenderer: React.FC<MathRendererProps> = ({ text, className = ''
            // Matches:
            // 1. Exponents: 7^77 or 7^{77}
            // 2. LaTeX commands: \sqrt{2}, \frac{1}{2}, \pi, etc.
-           const mathPattern = /(\d+\^(\d+|\{[^}]+\})|\\[a-zA-Z]+(?:\{[^}]+\})*)/g;
+           const mathPattern = /(\d+\^(\d+|\{[^}]+\})|(\w+_\{?[^}]+\}??)|\\[a-zA-Z]+(?:\{[^}]+\})*)/g;
            
            if (!part.match(mathPattern)) {
                return <span key={index}>{part}</span>;
