@@ -1,93 +1,136 @@
 
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowLeft, Users, Puzzle, MoveRight, Map, Grid3X3, Code, Zap } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Code, Compass, GitMerge, Infinity, ListOrdered, Users, ChevronRight, Clock, List } from 'lucide-react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-const topics = [
+const REASONING_TOPICS = [
   {
-    id: "coding-decoding",
-    title: "Coding Decoding",
-    description: "Crack the patterns and decode secret messages.",
-    icon: <Code className="w-6 h-6 text-primary" />,
-    color: "bg-primary/10 border-primary/20 hover:border-primary",
-    href: "/reasoning/coding-decoding",
+    id: 'coding-decoding',
+    title: 'Coding-Decoding',
+    icon: Code,
+    description: 'Letter shifting, patterns, and cyphers.',
+    questions: '20 Questions',
+    time: '10 Mins',
+    color: 'from-orange-400 to-amber-500', 
   },
   {
-    id: "alphabet-mastery",
-    title: "Alpha Blitz",
-    description: "Memorize letter positions and opposites with speed training.",
-    icon: <Zap className="w-6 h-6 text-yellow-500" />,
-    color: "bg-yellow-500/10 border-yellow-500/20 hover:border-yellow-500",
-    href: "/reasoning/alphabet-mastery",
+    id: 'blood-relations',
+    title: 'Blood Relations',
+    icon: Users,
+    description: 'Family tree and relationship puzzles.',
+    questions: '15 Questions',
+    time: '8 Mins',
+    color: 'from-teal-500 to-teal-400',
   },
   {
-    id: "puzzles",
-    title: "Floor Puzzles",
-    description: "Solve complex floor and box-based reasoning challenges.",
-    icon: <Puzzle className="w-6 h-6 text-secondary" />,
-    color: "bg-secondary/10 border-secondary/20 hover:border-secondary",
-    href: "/reasoning/puzzles",
-    locked: true
+    id: 'syllogism',
+    title: 'Syllogism',
+    icon: GitMerge,
+    description: 'Logical conclusions from statements.',
+    questions: '20 Questions',
+    time: '12 Mins',
+    color: 'from-indigo-500 to-violet-500',
   },
   {
-    id: "direction",
-    title: "Direction Sense",
-    description: "Navigate through maps and calculate shortest distances.",
-    icon: <Map className="w-6 h-6 text-purple-500" />,
-    color: "bg-purple-500/10 border-purple-500/20 hover:border-purple-500",
-    href: "/reasoning/direction",
-    locked: true
+    id: 'direction-sense',
+    title: 'Direction Sense',
+    icon: Compass,
+    description: 'North, South, angles and paths.',
+    questions: '15 Questions',
+    time: '8 Mins',
+    color: 'from-pink-500 to-pink-600',
   },
-  // Add more topics...
+  {
+    id: 'number-series',
+    title: 'Number Series',
+    icon: Infinity,
+    description: 'Find the missing number in the sequence.',
+    questions: '20 Questions',
+    time: '10 Mins',
+    color: 'from-emerald-500 to-emerald-600',
+  },
+    {
+    id: 'ordering-ranking',
+    title: 'Ordering & Ranking',
+    icon: ListOrdered,
+    description: 'Position from left/right, total persons.',
+    questions: '15 Questions',
+    time: '8 Mins',
+    color: 'from-orange-500 to-orange-600',
+  },
 ];
 
-export default function ReasoningPage() {
-  return (
-    <div className="min-h-screen bg-background p-6">
-       {/* Header */}
-       <div className="max-w-5xl mx-auto mb-12 pt-4">
-           <Link href="/dashboard" className="inline-flex items-center text-muted-foreground hover:text-white mb-6 transition-colors">
-               <ArrowLeft className="w-4 h-4 mr-2" />
-               Back to Dashboard
-           </Link>
-           <h1 className="text-4xl font-extrabold tracking-tight mb-2">Reasoning Sprins</h1>
-           <p className="text-muted-foreground">Select a topic to start your mental workout.</p>
-       </div>
+export default function ReasoningTopicsPage() {
+  const supabase = createClient();
+  const router = useRouter();
 
-       {/* Topics Grid */}
-       <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-           {topics.map((topic, index) => (
-               <Link key={topic.id} href={topic.locked ? "#" : topic.href} className={`block h-full ${topic.locked ? "cursor-not-allowed opacity-60" : ""}`}>
-                   <motion.div
-                       initial={{ opacity: 0, y: 20 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       transition={{ delay: index * 0.1 }}
-                       whileHover={!topic.locked ? { scale: 1.02 } : {}}
-                       className={`p-6 rounded-2xl border transition-all duration-300 ${topic.color} bg-card h-full flex flex-col justify-center`}
-                   >
-                       <div className="flex items-start justify-between h-full">
-                           <div className="flex items-start gap-4">
-                                <div className={`p-3 rounded-xl bg-background border border-border/50`}>
-                                    {topic.icon}
+  useEffect(() => {
+    const checkUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.push('/auth');
+        }
+    };
+    checkUser();
+  }, [router, supabase]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-black p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+            <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-4 inline-flex items-center gap-1 transition-colors">
+                 <ChevronRight className="rotate-180 w-4 h-4" /> Back to Dashboard
+            </Link>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Reasoning Library</h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Select a topic to start your AI-powered training session. Questions are generated instantly based on competitive exam patterns.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {REASONING_TOPICS.map((topic, index) => (
+            <Link
+              key={topic.id}
+              href={`/reasoning/${topic.title}`} 
+              className="group block"
+            >
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 transition-all duration-200 h-full">
+                    <div className="flex items-center">
+                        <div className={`w-14 h-14 rounded-xl items-center justify-center mr-4 flex bg-gradient-to-br ${topic.color} shrink-0`}>
+                            <topic.icon className="w-7 h-7 text-white" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-amber-500 transition-colors">
+                                {topic.title}
+                            </h3>
+                            <p className="text-gray-500 text-xs font-medium leading-4 mb-2 truncate">
+                                {topic.description}
+                            </p>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center">
+                                    <List className="w-3 h-3 text-gray-400 mr-1" />
+                                    <span className="text-xs text-gray-500">{topic.questions}</span>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-foreground mb-1">{topic.title}</h3>
-                                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{topic.description}</p>
+                                <div className="flex items-center">
+                                    <Clock className="w-3 h-3 text-gray-400 mr-1" />
+                                    <span className="text-xs text-gray-500">{topic.time}</span>
                                 </div>
-                           </div>
-                           {!topic.locked ? (
-                               <MoveRight className="w-5 h-5 text-muted-foreground shrink-0" />
-                           ) : (
-                               <span className="text-xs font-mono px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">LOCKED</span>
-                           )}
-                       </div>
-                   </motion.div>
-               </Link>
-           ))}
-       </div>
+                            </div>
+                        </div>
+
+                        <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 shrink-0" />
+                    </div>
+                </div>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

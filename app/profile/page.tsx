@@ -1,250 +1,302 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trophy, Medal, Brain, Calculator, BookOpen, Star, TrendingUp } from "lucide-react";
-import Link from "next/link";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { 
+    LogOut, 
+    Camera, 
+    ShieldCheck, 
+    Flame, 
+    Star, 
+    Trophy, 
+    ChevronRight, 
+    Bell, 
+    HelpCircle, 
+    Moon, 
+    User,
+    Settings,
+    Loader2,
+    ArrowLeft,
+    CreditCard,
+    LayoutDashboard
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const MENU_ITEMS = [
+  { icon: User, label: 'Edit Profile', desc: 'Update your personal information', color: 'text-teal-600', bg: 'bg-teal-50 dark:bg-teal-900/20' },
+  { icon: Bell, label: 'Notifications', desc: 'Manage your alert preferences', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  { icon: ShieldCheck, label: 'Privacy & Security', desc: 'Password and security settings', color: 'text-gray-600', bg: 'bg-gray-50 dark:bg-zinc-800' },
+  { icon: CreditCard, label: 'Billing & Plans', desc: 'Manage subscriptions', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+  { icon: HelpCircle, label: 'Help & Support', desc: 'FAQs and contacting support', color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+];
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [rank, setRank] = useState<number | null>(null);
-  const [stats, setStats] = useState({
-    maths: 0,
-    reasoning: 0,
-    english: 0,
-    totalGames: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const supabase = createClient();
-  
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        setUser(user);
+    const supabase = createClient();
+    const router = useRouter();
+    
+    const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const [uploading, setUploading] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(false); 
+    const [loading, setLoading] = useState(true);
 
-        // Fetch Profile
-        const { data: profileData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        setProfile(profileData);
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: { user }, error } = await supabase.auth.getUser();
+            if (!user) {
+                router.push('/auth');
+                return;
+            }
+            setUser(user);
 
-        // Calculate Rank (Count users with more XP)
-        if (profileData?.xp) {
-            const { count } = await supabase
-            .from('users')
-            .select('id', { count: 'exact', head: true })
-            .gt('xp', profileData.xp);
-            
-            setRank((count || 0) + 1);
-        } else {
-            setRank(null);
-        }
+            const { data: profileData } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+            setProfile(profileData);
+            setLoading(false);
+        };
+        fetchUser();
+    }, [router, supabase]);
 
-        // Fetch Subject Stats
-        // 1. Maths
-        const { data: mathScores } = await supabase.from('quant_scores').select('score').eq('user_id', user.id);
-        const mathTotal = mathScores?.reduce((acc, curr) => acc + (curr.score || 0), 0) || 0;
-
-        // 2. Reasoning
-        const { data: reasonScores } = await supabase.from('reasoning_scores').select('score').eq('user_id', user.id);
-        const reasonTotal = reasonScores?.reduce((acc, curr) => acc + (curr.score || 0), 0) || 0;
-
-        // 3. English
-        const { data: englishScores } = await supabase.from('english_scores').select('score').eq('user_id', user.id);
-        const englishTotal = englishScores?.reduce((acc, curr) => acc + (curr.score || 0), 0) || 0;
-        
-        setStats({
-            maths: mathTotal,
-            reasoning: reasonTotal,
-            english: englishTotal,
-            totalGames: (mathScores?.length || 0) + (reasonScores?.length || 0) + (englishScores?.length || 0)
-        });
-
-        // Fetch Leaderboard
-        const { data: topUsers } = await supabase
-            .from('users')
-            .select('id, full_name, avatar_url, xp')
-            .order('xp', { ascending: false })
-            .limit(10);
-        setLeaderboard(topUsers || []);
-
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setLoading(false);
-      }
+    const handleSignOut = async () => {
+        if (!confirm('Are you sure you want to sign out?')) return;
+        await supabase.auth.signOut();
+        router.replace('/auth');
     };
 
-    fetchData();
-  }, []);
+    const handleUploadAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        try {
+            setUploading(true);
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-  if (loading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading Profile...</div>;
-  }
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
-  if (!user) return null;
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, file, { upsert: true });
 
-  return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <header className="mb-8 flex items-center justify-between">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="gap-2">
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </Button>
-          </Link>
-        </header>
+            if (uploadError) throw uploadError;
 
-        {/* Profile Card */}
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-        >
-            <Card className="md:col-span-3 bg-gradient-to-br from-card to-secondary/5 border-secondary/20 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                <CardContent className="p-8 flex flex-col md:flex-row items-center gap-8 relative z-10">
-                    <div className="relative">
-                        <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-                            <AvatarImage src={profile?.avatar_url || user?.user_metadata?.avatar_url} />
-                            <AvatarFallback className="text-4xl bg-secondary/10 text-secondary">
-                                {(profile?.full_name || "U")[0]}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -bottom-2 -right-2 bg-yellow-500 text-black font-bold px-3 py-1 rounded-full text-sm shadow-lg flex items-center gap-1">
-                            <Trophy className="w-3 h-3 fill-current" />
-                            Rank #{rank || '-'}
-                        </div>
-                    </div>
-                    
-                    <div className="text-center md:text-left flex-1">
-                        <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "Anonymous Sprinter"}</h1>
-                        <p className="text-muted-foreground mb-6 flex items-center justify-center md:justify-start gap-2">
-                             <Medal className="w-4 h-4 text-secondary" /> 
-                             {profile?.xp || 0} Total XP
-                        </p>
-                        
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="p-3 bg-background/50 rounded-xl border border-border/50 backdrop-blur-sm">
-                                <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Games Played</div>
-                                <div className="text-xl font-bold">{stats.totalGames}</div>
-                            </div>
-                             <div className="p-3 bg-background/50 rounded-xl border border-border/50 backdrop-blur-sm">
-                                <div className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Win Rate</div>
-                                <div className="text-xl font-bold">--%</div>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        </motion.div>
+            const { data } = supabase.storage.from('avatars').getPublicUrl(fileName);
 
-        {/* Subject Breakdown */}
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Subject Performance
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="overflow-hidden border-orange-500/20">
-                    <div className="h-2 bg-orange-500 w-full" />
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-lg">Reasoning</CardTitle>
-                        <Brain className="w-5 h-5 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold mb-1">{stats.reasoning}</div>
-                        <p className="text-xs text-muted-foreground">Total Score Points</p>
-                    </CardContent>
-                </Card>
-            </motion.div>
+            const { error: updateError } = await supabase
+                .from('users')
+                .update({ avatar_url: data.publicUrl })
+                .eq('id', user.id);
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Card className="overflow-hidden border-cyan-500/20">
-                    <div className="h-2 bg-cyan-500 w-full" />
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-lg">Quant Maths</CardTitle>
-                        <Calculator className="w-5 h-5 text-cyan-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold mb-1">{stats.maths}</div>
-                        <p className="text-xs text-muted-foreground">Total Score Points</p>
-                    </CardContent>
-                </Card>
-            </motion.div>
+            if (updateError) throw updateError;
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className="overflow-hidden border-purple-500/20">
-                    <div className="h-2 bg-purple-500 w-full" />
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-lg">English</CardTitle>
-                        <BookOpen className="w-5 h-5 text-purple-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold mb-1">{stats.english}</div>
-                        <p className="text-xs text-muted-foreground">Total Score Points</p>
-                    </CardContent>
-                </Card>
-            </motion.div>
+            // Optimistic update
+            setProfile({ ...profile, avatar_url: data.publicUrl });
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message || 'Failed to upload image');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    if (loading) return (
+        <div className="min-h-screen bg-gray-50 dark:bg-black flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-teal-500" />
         </div>
+    );
 
-        {/* Global Leaderboard */}
-        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-500" />
-            Global Leaderboard
-        </h2>
-        <Card className="border-secondary/20 bg-secondary/5 mb-12">
-            <div className="divide-y divide-border/50">
-                {leaderboard.map((player, i) => (
-                    <div 
-                        key={player.id} 
-                        className={`flex items-center justify-between p-4 ${player.id === user.id ? 'bg-primary/10' : 'hover:bg-white/5'} transition-colors`}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className={`
-                                w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0
-                                ${i === 0 ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 
-                                  i === 1 ? 'bg-slate-300 text-slate-900' :
-                                  i === 2 ? 'bg-amber-600 text-white' : 
-                                  'bg-slate-800 text-slate-400'}
-                            `}>
-                                {i + 1}
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Avatar className="w-10 h-10 border border-white/10">
-                                    <AvatarImage src={player.avatar_url} />
-                                    <AvatarFallback>{player.full_name?.[0] || 'U'}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <div className="font-semibold">{player.full_name || 'Anonymous'}</div>
-                                    <div className="text-xs text-muted-foreground hidden sm:block">BrainSprint Champion</div>
-                                </div>
-                            </div>
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-black font-sans pb-12">
+             {/* Navbar / Header */}
+             <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800 sticky top-0 z-20">
+                 <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                     <Link href="/dashboard" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                         <ArrowLeft className="w-5 h-5" />
+                         <span className="font-semibold">Back to Dashboard</span>
+                     </Link>
+                     <div className="text-lg font-bold text-gray-900 dark:text-white">My Profile</div>
+                     <div className="w-24" /> {/* Spacer for balance */}
+                 </div>
+             </div>
+
+             <main className="max-w-6xl mx-auto px-6 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                    
+                    {/* LEFT COLUMN - Profile Card */}
+                    <div className="md:col-span-4 lg:col-span-3 space-y-6">
+                        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 flex flex-col items-center text-center">
+                             <div className="relative mb-4 group">
+                                 <div className="w-32 h-32 rounded-full p-1 border-4 border-gray-50 dark:border-zinc-800 shadow-inner overflow-hidden relative">
+                                    <Image 
+                                        src={profile?.avatar_url || `https://api.dicebear.com/9.x/micah/svg?seed=${user?.email}`} 
+                                        alt="Avatar"
+                                        fill
+                                        className="object-cover rounded-full"
+                                    />
+                                    {/* Hover Upload Overlay */}
+                                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer z-10">
+                                        <Camera className="w-8 h-8 text-white" />
+                                        <input type="file" onChange={handleUploadAvatar} className="hidden" accept="image/*" />
+                                    </label>
+                                 </div>
+                                 <div className="absolute bottom-1 right-1 bg-teal-500 w-8 h-8 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 pointer-events-none z-20">
+                                     {uploading ? <Loader2 className="w-4 h-4 text-white animate-spin" /> : <Camera className="w-4 h-4 text-white" />}
+                                 </div>
+                             </div>
+
+                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                                 {profile?.full_name || 'Brain Sprinter'}
+                             </h2>
+                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{user?.email}</p>
+
+                             <div className="flex items-center gap-2 bg-teal-50 dark:bg-teal-900/10 px-3 py-1.5 rounded-full border border-teal-100 dark:border-teal-900/20 mb-6">
+                                 <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                                 <span className="text-teal-700 dark:text-teal-400 font-bold text-xs uppercase tracking-wide">
+                                     {profile?.is_premium ? 'Premium' : 'Free Plan'}
+                                 </span>
+                             </div>
+
+                             <button 
+                                onClick={handleSignOut}
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                             >
+                                 <LogOut className="w-5 h-5" /> Sign Out
+                             </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Medal className="w-4 h-4 text-secondary opacity-50" />
-                            <span className="font-mono font-bold text-lg">{player.xp} <span className="text-xs text-muted-foreground font-sans">XP</span></span>
+
+                        {/* Quick Stats Summary for Mobile / Vertical Layout */}
+                        <div className="bg-[#FF6B58] rounded-3xl p-6 text-white shadow-lg shadow-orange-500/20 relative overflow-hidden">
+                            <Flame className="w-32 h-32 absolute -right-6 -bottom-6 text-white/10 rotate-12" />
+                            <div className="relative z-10">
+                                <div className="text-white/80 font-medium mb-1">Current Streak</div>
+                                <div className="text-4xl font-bold mb-4">{profile?.current_streak || 0} Days</div>
+                                <div className="bg-white/20 h-2 rounded-full overflow-hidden">
+                                    <div className="bg-white h-full w-2/3" /> 
+                                </div>
+                                <div className="text-white/60 text-xs mt-2">Keep it up! You're doing great.</div>
+                            </div>
                         </div>
                     </div>
-                ))}
-                {leaderboard.length === 0 && (
-                     <div className="p-8 text-center text-muted-foreground">No ranked players yet.</div>
+
+                    {/* RIGHT COLUMN - Main Content */}
+                    <div className="md:col-span-8 lg:col-span-9 space-y-6">
+                        
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <StatCard 
+                                icon={Star} 
+                                value={profile?.xp || 0} 
+                                label="Total XP" 
+                                color="text-amber-500" 
+                                bg="bg-amber-500/10"
+                                trend="+12%" // Example trend
+                            />
+                            <StatCard 
+                                icon={Trophy} 
+                                value={profile?.level || 1} 
+                                label="Current Level" 
+                                color="text-purple-600" 
+                                bg="bg-purple-500/10"
+                                subLabel="Rookie"
+                            />
+                            <StatCard 
+                                icon={LayoutDashboard} 
+                                value={profile?.games_played || 0} 
+                                label="Games Played" 
+                                color="text-blue-500" 
+                                bg="bg-blue-500/10"
+                            />
+                        </div>
+
+                        {/* Settings Section */}
+                        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+                             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                                <Settings className="w-5 h-5 text-gray-400" /> Account Settings
+                             </h3>
+
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {MENU_ITEMS.map((item, idx) => (
+                                    <button 
+                                        key={idx}
+                                        className="flex items-start p-4 rounded-2xl border border-gray-100 dark:border-zinc-800 hover:border-teal-500/30 hover:bg-teal-50/30 dark:hover:bg-zinc-800/50 transition-all group text-left"
+                                        onClick={() => {}} // Placeholder handlers
+                                    >
+                                        <div className={`p-3 rounded-full mr-4 shrink-0 transition-colors ${item.bg} group-hover:bg-white dark:group-hover:bg-zinc-800`}>
+                                            <item.icon className={`w-6 h-6 ${item.color}`} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                                                {item.label}
+                                            </div>
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                                                {item.desc}
+                                            </div>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-teal-500 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                                    </button>
+                                ))}
+                             </div>
+
+                             {/* Dark Mode Row */}
+                             <div className="mt-8 pt-8 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+                                 <div className="flex items-center gap-4">
+                                     <div className="p-3 bg-gray-100 dark:bg-zinc-800 rounded-full text-gray-600 dark:text-gray-400">
+                                         <Moon className="w-6 h-6" />
+                                     </div>
+                                     <div>
+                                         <div className="font-bold text-gray-900 dark:text-white">Dark Mode</div>
+                                         <div className="text-xs text-gray-500">Adjust the appearance of the application</div>
+                                     </div>
+                                 </div>
+                                 <button
+                                    onClick={() => setIsDarkMode(!isDarkMode)} 
+                                    className={`w-14 h-8 rounded-full p-1 transition-colors relative ${isDarkMode ? 'bg-teal-500' : 'bg-gray-200 dark:bg-zinc-700'}`}
+                                 >
+                                     <motion.div 
+                                        initial={false}
+                                        animate={{ x: isDarkMode ? 24 : 0 }}
+                                        className="bg-white w-6 h-6 rounded-full shadow-md" 
+                                     />
+                                 </button>
+                             </div>
+                        </div>
+
+                        {/* Version Info */}
+                        <div className="text-center md:text-right text-gray-400 text-xs py-4">
+                            BrainSprint Web v1.0.0
+                        </div>
+                    </div>
+                </div>
+             </main>
+        </div>
+    );
+}
+
+function StatCard({ icon: Icon, value, label, color, bg, trend, subLabel }: any) {
+    return (
+        <div className="bg-white dark:bg-zinc-900 p-6 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+            <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-2xl ${bg}`}>
+                    <Icon className={`w-6 h-6 ${color}`} />
+                </div>
+                {trend && (
+                    <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-1 rounded-full">
+                        {trend}
+                    </span>
                 )}
             </div>
-        </Card>
-
-      </div>
-    </div>
-  );
+            <div className="text-3xl font-extrabold text-gray-900 dark:text-white mb-1 group-hover:scale-105 transition-transform origin-left">
+                {value}
+            </div>
+            <div className="flex items-center gap-2">
+                <div className="text-xs font-bold text-gray-400 uppercase tracking-wide">{label}</div>
+                {subLabel && <span className="text-xs text-gray-300">• {subLabel}</span>}
+            </div>
+        </div>
+    );
 }

@@ -3,6 +3,7 @@ import { rubik, spaceMono } from "./fonts";
 import "./globals.css";
 
 import { SWRegister } from "@/components/SWRegister";
+import AuthProvider from "@/components/AuthProvider";
 
 export const metadata: Metadata = {
   title: "BrainSprint | AxomPrep",
@@ -21,7 +22,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <SWRegister />
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
